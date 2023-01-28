@@ -1,4 +1,4 @@
-# templates.lua
+# extend.lua
 Simplistic object templating and inheritance
 
 ## Usage
