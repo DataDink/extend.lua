@@ -1,6 +1,6 @@
 --- Simplistic object templating and inheritance
 -- @see https://github.com/DataDink/extends.lua#README.md
-INIT_FUNC_NAME = "initialize";
+local INIT_FUNC_NAME = "initialize";
 local extend; extend = setmetatable({
   initialize=function(prototype, ...)
     local config = getmetatable(prototype);
