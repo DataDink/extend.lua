@@ -1,68 +1,57 @@
 local unit = require("luaunit");
 local extend = require("extend");
 
-function testAssignPrefixed()
-  local instance, static, meta, value = {}, {}, {}, "bar";
-  extend.assign(instance, static, meta, "__foo", value);
-  unit.assertEquals(meta.__foo, value);
-  unit.assertIsNil(instance.__foo);
-  unit.assertIsNil(static.__foo);
+function testNoArgs()
+  local prototype = extend();
+  unit.assertEquals(type(prototype), "table");
+  unit.assertEquals(type(getmetatable(prototype)), "table");
+  unit.assertEquals(type(getmetatable(prototype).__index), "table");
+  unit.assertIs(getmetatable(prototype).__call, extend.initialize);
+  unit.assertEquals(type(getmetatable(prototype).properties), "table");
+  unit.assertEquals(type(getmetatable(prototype).metatable), "table");
+  unit.assertEquals(type(getmetatable(prototype).initialize), "nil");
 end
 
-function testAssignInitialize()
-  local instance, static, meta, value = {}, {}, {}, function() end;
-  extend.assign(instance, static, meta, "initialize", value);
-  unit.assertEquals(meta.initialize, value);
-  unit.assertIsNil(instance.initialize);
-  unit.assertIsNil(static.initialize);
+function testBaseOnly()
+  local base = {};
+  local prototype = extend(base);
+  unit.assertIs(getmetatable(prototype).__index, base);
 end
 
-function testAssignFunction()
-  local instance, static, meta, value = {}, {}, {}, function() end;
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertIsNil(instance.foo);
-  unit.assertEquals(static.foo, value);
+function testInitializerExists()
+  local initializer = function() end;
+  local prototype = extend({}, {initialize = initializer});
+  unit.assertEquals(type(getmetatable(prototype).initialize), "function");
 end
 
-function testAssignTable()
-  local instance, static, meta, value = {}, {}, {}, {};
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertIsNil(instance.foo);
-  unit.assertEquals(static.foo, value);
+function testPrefixToMeta()
+  local prototype = extend({}, {__foo = "bar"});
+  unit.assertEquals(getmetatable(prototype).metatable.__foo, "bar");
 end
 
-function testAssignString()
-  local instance, static, meta, value = {}, {}, {}, "bar";
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertEquals(instance.foo, value);
-  unit.assertIsNil(static.foo);
+function testFunctionToStatic()
+  local prototype = extend({}, {foo = function() end});
+  unit.assertEquals(type(rawget(prototype, "foo")), "function");
 end
 
-function testAssignNumber()
-  local instance, static, meta, value = {}, {}, {}, 42;
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertEquals(instance.foo, value);
-  unit.assertIsNil(static.foo);
+function testStringToProps()
+  local prototype = extend({}, {foo = "bar"});
+  unit.assertEquals(getmetatable(prototype).properties.foo, "bar");
 end
 
-function testAssignBoolean()
-  local instance, static, meta, value = {}, {}, {}, true;
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertEquals(instance.foo, value);
-  unit.assertIsNil(static.foo);
+function testTableToProps()
+  local prototype = extend({}, {foo = {}});
+  unit.assertEquals(getmetatable(prototype).properties.foo, {});
 end
 
-function testAssignNil()
-  local instance, static, meta, value = {}, {}, {}, nil;
-  extend.assign(instance, static, meta, "foo", value);
-  unit.assertIsNil(meta.foo);
-  unit.assertIsNil(instance.foo);
-  unit.assertIsNil(static.foo);
+function testNumberToProps()
+  local prototype = extend({}, {foo = 1});
+  unit.assertEquals(getmetatable(prototype).properties.foo, 1);
+end
+
+function testBooleanToProps()
+  local prototype = extend({}, {foo = true});
+  unit.assertEquals(getmetatable(prototype).properties.foo, true);
 end
 
 function testAncestorsNoArgs() 
